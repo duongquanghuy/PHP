@@ -1,19 +1,37 @@
 <?php 
 	require_once('database.php');
+	require_once('function.php');
 
+	// Xóa
 	if (isset($_GET['delete_id'])) {
 		$delete_id = $_GET['delete_id'];
 		$sql = 'delete from students where id ='.$delete_id;
 
-		$conn = new mysqli('localhost', 'root', '', 'php_bt161');
-
-		mysqli_set_charset($conn, 'utf8');
-
-		mysqli_query($conn, $sql);
-
-		mysqli_close($conn);
+		execute($sql);
 
 	}
+	
+	//Tìm kiếm
+	$isSearch = false;
+	$nameSearch = '';
+	if (isset($_POST['nameSearch'])) {
+		$nameSearch = $_POST['nameSearch'];
+	}
+	if($nameSearch != ''){
+		$isSearch = true;
+		$sql = 'select from students where fullname = "'.$nameSearch.'"';
+	}
+
+
+	//Update và insert
+	$isUpdate = false;
+	if(isset($_GET['update_id'])){
+		$studentUpdate = getStudent($_GET['update_id']);
+		$isUpdate = true;
+		$studentUpdateID = $_GET['update_id'];
+	}
+
+
 	$fullname = $age = $address = '';
 	if(isset($_POST['fullname'])){
 		$fullname = $_POST['fullname'];
@@ -24,17 +42,21 @@
 	if(isset($_POST['address'])){
 		$address = $_POST['address'];
 	}
-	if($fullname != '' && $age != '' && $address != ''){
+	//Insert ------
+	if($fullname != '' && $age != '' && $address != '' && !$isUpdate){
 		$sql = 'insert into students (fullname, age, address) values ("'.$fullname.'","'.$age.'","'.$address.'")';
 		execute($sql);
+		header('Location: student-management.php');
+		die();
 	}
-	$nameSearch = '';
-	if (isset($_POST['nameSearch'])) {
-		$nameSearch = $_POST['nameSearch'];
+	//Update -----
+	if($fullname != '' && $age != '' && $address != '' && $isUpdate){
+		$sql = 'UPDATE students SET fullname = "'.$fullname.'", age ='.$age.', address = "'.$address.'" where id = '.$studentUpdateID;
+		execute($sql);
+		header('Location: student-management.php');
+		die();
 	}
-	if($nameSearch != ''){
-		$sql = 'select from students where fullname = "'.$nameSearch.'"';
-	}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -69,7 +91,7 @@
 					<div class="form-group">
 						<input type="text" name="nameSearch" placeholder="Enter the name to search" class="form-control">
 					</div>
-					<button type="submit" class="btn btn-success">Search</button>
+					<input type="submit" class="btn btn-success myBtn" value="Search"></input>
 				</form>
 			</div>
 			<div class="panel-body">
@@ -82,20 +104,13 @@
 						<th style="width: 60px"></th>
 					</tr>
 <?php
-	$sql = 'select * from students';
-
-	$conn = new mysqli('localhost', 'root', '', 'php_bt161');
-		mysqli_set_charset($conn, 'utf8');
-
-		$resultSet = mysqli_query($conn, $sql);
-		$data = [];
-
-		while ($row = mysqli_fetch_array($resultSet, 1)) {
-			$data[] = $row;
-		}
-
-		mysqli_close($conn);
-	$result = $data;
+	if($isSearch){
+		$sql = 'select * from students where fullname = "'.$nameSearch.'"';
+	}
+	else{
+		$sql = 'select * from students';
+	}
+	$result = executeResult($sql);
 
 	$count = 0;
 	foreach ($result as $row) {
@@ -104,7 +119,9 @@
 					<td>'.$row['fullname'].'</td>
 					<td>'.$row['age'].'</td>
 					<td>'.$row['address'].'</td>
-					<td><a href="?delete_id='.$row['id'].'"><button style="height: 30px" class="btn btn-danger">Delete</button></a></td>
+					<td><a href="?update_id='.$row['id'].'"><button class="btn btn-warning">Update</button></a></td>
+					<td><a href="?delete_id='.$row['id'].'"><button class="btn btn-danger">Delete</button></a></td>
+					
 				</tr>';
 	}
 ?>
@@ -122,17 +139,17 @@
 				<form method="post">
 					<div>
 						<label>FullName</label>
-						<input type="text" name="fullname" class="form-control">
+						<input type="text" name="fullname" value=" <?php echo !empty($studentUpdate['fullname']) ? $studentUpdate['fullname'] : ''; ?>" class="form-control">
 					</div>
 					<div>
 						<label>Age</label>
-						<input type="number" name="age" class="form-control" style="width:100px; ">
+						<input type="number" name="age" value="<?php echo !empty($studentUpdate['age']) ? $studentUpdate['age'] : ''; ?>" class="form-control" style="width:100px; ">
 					</div>
 					<div >
 						<label>Address</label>
-						<input type="text" name="address" class="form-control">
+						<input type="text" name="address" value="<?php echo !empty($studentUpdate['address']) ? $studentUpdate['address'] : ''; ?>" class="form-control">
 					</div>
-					<button type="submit" class="btn btn-success myBtn">Add</button>
+					<input type="submit" class="btn btn-success myBtn" value="<?php echo $isUpdate ? 'Update' : 'Add'  ?>"></input>
 				</form>
 			</div>
 		</div>
