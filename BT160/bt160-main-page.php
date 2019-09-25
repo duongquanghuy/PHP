@@ -73,6 +73,12 @@
 				break;
 			}
 		}
+
+		if(isset($_GET['btnRemove'])){
+			$idx = $_GET['btnRemove'];
+			unset($_SESSION['cosmeticOrdered'][$idx]);
+			echo '<script>alert("Hủy đặt hàng sản phẩm thành công!");</script>';
+		}
 	}
 ?>
 
@@ -116,16 +122,16 @@
 				<div class="row" style="text-align: center">
 					<form method="get">
 						<?php
-						foreach ($cosmeticsArray as $phone) {
-							echo '
-							<div class="cosmetic col-sm-3">
-							<p class="cosmetic-name">' . $phone->phoneName . '</p>
-							<img src="' . $phone->phoneImgLink . '">
-							<p class="cosmetic-price">$' . $phone->phonePrice . '</p>
-							<button class="btn btn-success" name="btnOrder" value="' . $phone->phoneId . '">ĐẶT MUA</button>
-							</div>
-							';
-						}
+							foreach ($cosmeticsArray as $phone) {
+								echo '
+								<div class="cosmetic col-sm-3">
+								<p class="cosmetic-name">' . $phone->phoneName . '</p>
+								<img src="' . $phone->phoneImgLink . '">
+								<p class="cosmetic-price">$' . $phone->phonePrice . '</p>
+								<button class="btn btn-success" name="btnOrder" value="' . $phone->phoneId. '">ĐẶT MUA</button>
+								</div>
+								';
+							}
 						?>
 					</form>
 				</div>
@@ -147,20 +153,22 @@
 							<th>Tên Điện thoại</th>
 							<th>Giá</th>
 							<th>Ảnh</th>
+							<th></th>
 						</tr>
 					</thead>
-					<tbody>
+					<tbody><form method="get">
 						<?php
 							foreach ($_SESSION['cosmeticOrdered'] as $phone) {
 								echo '
 									<tr><td>' . $phone->phoneName . '</td>
 									<td>' . $phone->phonePrice . '</td>
 									<td><img class="result-img" src="' . $phone->phoneImgLink . '"></td>
+									<td><button type="button" class="btn btn-danger" name="btnRemove" onclick="removeCosmetic(' . $phone->phoneId . ')">Hủy đặt hàng</button>
 									</tr>
 								';
 							}
 						?>
-					</tbody>
+					</form></tbody>
 				</table>
 			</div>
 		</div>
@@ -170,5 +178,11 @@
 	$('#btn-result').click(function() {
 		$('#result').css('display', 'initial');
 	});
+
+	function removeCosmetic(idx){
+		if (confirm('Bạn có chắc chắn muốn hủy đặt mặt hàng này?')){
+			window.location.assign('bt160-main-page.php?btnRemove=' + idx);
+		}
+	}
 </script>
 </html>
